@@ -1,0 +1,34 @@
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+bin/
+obj/
+
+# Visual Studio files
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+*.settings
+*.sln.ide
+*.suo
+*.testsettings
+*.user
+*.userosscache
+*.vsp
+*.vspx
+*.vssscc
+*.vssettings
+*.vstemplate
+*.vsto
+*.vsw
+*.vsz
+*.wixproj
+*.wixproj.user
