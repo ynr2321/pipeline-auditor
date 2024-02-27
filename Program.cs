@@ -33,6 +33,7 @@ namespace pipelineAuditor
             ResponseParser Parser = new ResponseParser();
             RestApiClient Client = new RestApiClient(PersonalAccessToken);
             EndpointGenerator EPG = new EndpointGenerator();
+
             // Initialising space to store responses
             List<string> RunMetaDataResponses = new List<string>();
             List<string> RunInfoResponses = new List<string>();
@@ -41,6 +42,7 @@ namespace pipelineAuditor
             // getting list of pipelines
             var listpipelineResponse = Client.GetResponse(pipelineListEndpoint).Result;
             List<string> pipelineList = Parser.GetPipelineIds(listpipelineResponse);
+
             // getting endpoint to list runs for each pipeline
             List<string> RunMetaDataEpList = EPG.GetListRunsEps(pipelineList);
 
@@ -49,9 +51,11 @@ namespace pipelineAuditor
             {
                 RunMetaDataResponses.Add(Client.GetResponse(EndPoint).Result);
             }
+
             // extracting buildIds for latest runs
             var BuildIds = Parser.GetBuildIds(RunMetaDataResponses);
-            // gettinging end points to list records (task info) for each run
+
+            // getting end points to list records (task info) for each run
             var RunInfoEndPoints = EPG.GetRunInfoEps(BuildIds);
 
             // getting run info response (containing count and records) for each run
@@ -69,7 +73,7 @@ namespace pipelineAuditor
 
             var LatestRunsParsed = Parser.GetRunResponses(RunInfoResponses);
 
-            var AllIssues = Parser.GetAllIssues(RunInfoResponses);
+            var AllWarnings = Parser.GetAllWarnings(RunInfoResponses);
 
             Console.WriteLine("Done");
 

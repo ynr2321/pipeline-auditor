@@ -105,7 +105,7 @@ namespace pipelineAuditor
         }
 
 
-        public List<Object> GetAllIssues(List<string> RunInfoResponses)
+        public List<Object> GetAllWarnings(List<string> RunInfoResponses)
         {
             List<Object> List = new List<Object>();
 
