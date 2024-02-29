@@ -15,7 +15,9 @@ namespace pipelineAuditor
         {
         }
 
+        // PIPELINES  ------------------------------------------------------------------------------------------------
         public List<string> GetPipelineIds(string rawResponseBody)
+        // Input: raw response body from 'LIST pipelines' api call
         {
             List<string> PipelineIds = new List<string>();
 
@@ -28,9 +30,25 @@ namespace pipelineAuditor
 
             return PipelineIds;
         }
+        public List<string> GetPipelineNames(string rawResponseBody)
+            // Input: raw response body from 'LIST pipelines' api call
+        {
+            List<string> PipelineNames = new List<string>();
+
+            var parsedResponse = JsonConvert.DeserializeObject<ListPipelineResponse>(rawResponseBody)!;
+
+            foreach (var pipeline in parsedResponse.value)
+            {
+                PipelineNames.Add(pipeline.name.ToString());
+            }
+
+            return PipelineNames;
+        }
 
 
-        public List<string> GetBuildIds(List<string> ListOf_ListRuns_Responses)
+        // RUNS ---------------------------------------------------------------------------------------------------
+        public List<string> GetBuildIds(List<string> ListOf_ListRuns_Responses, int nthRun)
+        // Input: a list of raw response bodies from the 'LIST runs' api call made for each pipeline
         {
             List<string> BuildIds = new List<string>();
 
@@ -45,8 +63,24 @@ namespace pipelineAuditor
                 }
                 else
                 {
-                  string buildId = runList.value[0].id.ToString(); // extracting buildId for first pipeline in list
-                  BuildIds.Add(buildId);
+                    try
+                    {
+                        string buildId =
+                            runList.value[nthRun].id.ToString(); // extracting buildId for nth pipeline in list
+                        BuildIds.Add(buildId);
+                    }
+                    catch (System.ArgumentOutOfRangeException ex)
+                    {
+                        // use NoRunsExistYet for now as the buildId processing function recognises this
+                        string buildId = "NoRunsExistYet";
+                        BuildIds.Add(buildId);
+                    }
+                    catch (Exception ex)
+                    {
+                        string buildId = "NoRunsExistYet";
+                        BuildIds.Add(buildId);
+                    }
+                  
                 }
                 
             }
@@ -54,7 +88,9 @@ namespace pipelineAuditor
             return BuildIds;
         }
 
+
         public List<Object> GetRunResponses(List<string> RunInfoResponses)
+        // Input: list of 'GET' responses for specific runs
         {
             List<Object> parsedResponses = new List<Object>();
 
@@ -86,12 +122,39 @@ namespace pipelineAuditor
       
 
         public object GetIssuesDict(string rawResponseBody)
+        // Input: rawResponse body from 'GET Run' api call
         {
             var issuesDict = new Dictionary<string, string>();
 
             Run parsedResponse = JsonConvert.DeserializeObject<Run>(rawResponseBody)!;
             // Extracting the records property from the Run
-            var recordsList = parsedResponse.Records;
+            List<Record> recordsList = new List<Record>();
+            try
+            {
+                if (parsedResponse != null)
+                {
+                    recordsList = parsedResponse.Records;
+                }
+                else
+                {
+                    Record fakeRecord = new Record();
+                    fakeRecord.warningCount = 0;
+                    List<Record> fakeRecordsList = new List<Record>();
+                    fakeRecordsList.Add(fakeRecord);
+
+                    recordsList = fakeRecordsList;
+                }
+            }
+            catch (System.NullReferenceException ex)
+            {
+                Record fakeRecord = new Record();
+                fakeRecord.warningCount = 0;
+                List<Record> fakeRecordsList = new List<Record>();
+                fakeRecordsList.Add(fakeRecord);
+
+                recordsList = fakeRecordsList;
+            }
+
             // Extracting the task name and warning message for tasks with warnings
             foreach (var record in recordsList)
             {
@@ -106,6 +169,7 @@ namespace pipelineAuditor
 
 
         public List<Object> GetAllWarnings(List<string> RunInfoResponses)
+        
         {
             List<Object> List = new List<Object>();
 
@@ -142,20 +206,3 @@ namespace pipelineAuditor
 
 
 
-
-
-
-
-
-
-// Filtering properties of the 'run' object to select 'records' (of tasks) that contain issues
-//var issues = parsedResponse.Records
-//    .Where(r => r.Issues != null)
-//    .Select(r => r.Issues!.Select(i => new
-//    {
-//        TaskName = r.Name,
-//        Type = i.Type,
-//        Message = i.Message
-//    }))
-//    .SelectMany(r => r)
-//    .ToList();
